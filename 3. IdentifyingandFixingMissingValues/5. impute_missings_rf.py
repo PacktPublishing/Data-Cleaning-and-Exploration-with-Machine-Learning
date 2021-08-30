@@ -2,11 +2,12 @@
 import pandas as pd
 import numpy as np
 pd.options.display.float_format = '{:,.1f}'.format
+import os
 import sys
 import sklearn.neighbors._base
 sys.modules['sklearn.neighbors.base'] = sklearn.neighbors._base
 from missingpy import MissForest
-nls97 = pd.read_csv("data/nls97b.csv")
+nls97 = pd.read_csv("/data/nls97b.csv")
 nls97.set_index("personid", inplace=True)
 
 # clean the NLS wage data
