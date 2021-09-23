@@ -38,8 +38,9 @@ def getlm(df, ycolname, xcolnames):
   X = df[xcolnames]
   X = sm.add_constant(X)
   lm = sm.OLS(y, X).fit()
-  coefficients = pd.DataFrame(zip(['constant'] + xcolnames, lm.params,
-    lm.pvalues), columns=['features','params','pvalues'])
+  coefficients = pd.DataFrame(zip(['constant'] + xcolnames,
+    lm.params, lm.pvalues), columns=['features','params',
+    'pvalues'])
   return coefficients, lm
 
 xvars = ['weeksworked16','parentincome','degcol','degadv']

@@ -29,10 +29,12 @@ plt.tight_layout()
 plt.show()
 
 # see if some countries have unexpected low or high death rates given number of cases
-covidkeys['total_cases_q'] = pd.qcut(covidkeys['total_cases_mill'],
+covidkeys['total_cases_q'] = \
+  pd.qcut(covidkeys['total_cases_mill'],
   labels=['very low','low','medium','high','very high'],
   q=5, precision=0)
-covidkeys['total_deaths_q'] = pd.qcut(covidkeys['total_deaths_mill'],
+covidkeys['total_deaths_q'] = \
+  pd.qcut(covidkeys['total_deaths_mill'],
   labels=['very low','low','medium','high','very high'],
   q=5, precision=0)
 

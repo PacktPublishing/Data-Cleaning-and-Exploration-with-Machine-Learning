@@ -9,7 +9,6 @@ pd.set_option('display.max_rows', 200)
 pd.options.display.float_format = '{:,.0f}'.format
 covidtotals = pd.read_csv("data/covidtotals.csv")
 covidtotals.set_index("iso_code", inplace=True)
-
 landtemps = pd.read_csv("data/landtemps2019avgs.csv")
 
 # do a scatterplot of total_cases by total_deaths
@@ -29,14 +28,6 @@ plt.tight_layout()
 fig.subplots_adjust(top=0.92)
 plt.show()
 
-
-# run a scatter plot latitude by avgtemp
-plt.scatter(x="latabs", y="avgtemp", data=landtemps)
-plt.xlabel("Latitude (N or S)")
-plt.ylabel("Average Temperature (Celsius)")
-plt.yticks(np.arange(-60, 40, step=20))
-plt.title("Latitude and Average Temperature in 2019")
-plt.show()
 
 # show the high elevation points in a different color
 low, high = landtemps.loc[landtemps.elevation<=1000], landtemps.loc[landtemps.elevation>1000]
