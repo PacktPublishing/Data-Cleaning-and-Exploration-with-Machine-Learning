@@ -49,16 +49,3 @@ plt.ylabel("Region")
 plt.tight_layout()
 plt.show()
 
-# show the most extreme value for covid totals
-covidtotals.loc[covidtotals.total_cases_pm>=14000,\
-  ['location','total_cases_pm']]
-
-# do the same boxplots without the one extreme value in West Asia
-sns.boxplot('total_cases_pm', 'region', data=covidtotals.loc[covidtotals.total_cases_pm<14000])
-sns.swarmplot(y="region", x="total_cases_pm", data=covidtotals.loc[covidtotals.total_cases_pm<14000], size=3, color=".3", linewidth=0)
-plt.title("Total Cases Without Extreme Values")
-plt.xlabel("Cases Per Million")
-plt.ylabel("Region")
-plt.tight_layout()
-plt.show()
-

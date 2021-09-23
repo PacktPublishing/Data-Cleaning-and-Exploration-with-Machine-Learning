@@ -34,7 +34,8 @@ pred.groupby(['outlier'])[['scores']].\
   agg(['min','median','max'])
 
 # show covid data for the outliers
-covidanalysis = covidanalysis.join(pred).loc[:,analysisvars + ['scores']].\
+covidanalysis = covidanalysis.join(pred).\
+  loc[:,analysisvars + ['scores']].\
   sort_values(['scores'], ascending=False)
 covidanalysis.head(10)
 
