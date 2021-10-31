@@ -1,0 +1,11 @@
+[workspace]
+restore_data_on_startup = True
+save_data_on_exit = True
+save_history = True
+save_non_project_files = False
+project_type = empty-project-type
+recent_files = ['1. selecting_features_for_classification.py', '2. selecting_features_for_regression.py', '3. forward_feature_selection.py', '4. rfe_regression.py', '5. regularization.py']
+
+[main]
+version = 0.2.0
+

@@ -1,0 +1,38 @@
+
+2. ExaminingBivariateandMultivariateRelationships/.spyproject/config/
+
+4. PruningEncodingandRescalingFeatures/.spyproject/config/backups/
+
+*.ini
+
+4. PruningEncodingandRescalingFeatures/8. hc.py
+
+5. SelectingFeatures/data/nls97wageskeep.csv
+
+6. ModelValidation/.spyproject/config/backups/
+
+5. SelectingFeatures/.spyproject/config/backups/
+
+5. SelectingFeatures/data/breast-cancer.csv
+
+5. SelectingFeatures/data/covidcases.csv
+
+5. SelectingFeatures/data/coviddaily.csv
+
+5. SelectingFeatures/data/covidtotals.csv
+
+5. SelectingFeatures/data/landtemps2019avgs.csv
+
+5. SelectingFeatures/data/location.csv
+
+5. SelectingFeatures/data/ltbrazil.csv
+
+5. SelectingFeatures/data/ltpoland.csv
+
+5. SelectingFeatures/data/nls97.csv
+
+5. SelectingFeatures/data/nls97add.csv
+
+5. SelectingFeatures/data/nls97f.csv
+
+6. ModelValidation/data/breast-cancer.csv
