@@ -1,7 +1,7 @@
 # import pandas, numpy, and matplotlib
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import sklearn.preprocessing as skpre
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
 
 pd.set_option('display.width', 200)
 pd.set_option('display.max_columns', 100)
@@ -19,17 +19,20 @@ X_train, X_test, y_train, y_test =  \
   covidtotals[['total_cases']], test_size=0.3, random_state=0)
 
 # do min-max scaling
-scaler = skpre.MinMaxScaler()
+scaler = MinMaxScaler()
 X_train_mms = pd.DataFrame(scaler.fit_transform(X_train),
   columns=X_train.columns, index=X_train.index)
-X_train_mms.head()
 X_train_mms.describe()
 
 
 # do standard scaling
-scaler = skpre.StandardScaler()
+scaler = StandardScaler()
 X_train_ss = pd.DataFrame(scaler.fit_transform(X_train),
   columns=X_train.columns, index=X_train.index)
 X_train_ss.describe()
 
-covidtotals.describe()
+# use the robust scaler
+scaler = RobustScaler()
+X_train_rs = pd.DataFrame(scaler.fit_transform(X_train),
+  columns=X_train.columns, index=X_train.index)
+X_train_rs.describe()

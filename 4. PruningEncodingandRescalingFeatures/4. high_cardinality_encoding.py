@@ -26,9 +26,9 @@ covidtotals_ohe.filter(regex='location|region',
   axis="columns").sample(5, random_state=99).T
 
 # use the hashing encoder for region
+X_train['region2'] = X_train.region
 he = HashingEncoder(cols=['region'], n_components=6)
-covidtotals_enc = he.fit_transform(covidtotals)
-covidtotals_enc = covidtotals_enc.join(covidtotals[['region']])
-covidtotals_enc[['col_0','col_1','col_2','col_3',
-  'col_4','col_5','region']].sample(5, random_state=1)
+X_train_enc = he.fit_transform(X_train)
+X_train_enc.filter(regex='col|region',
+  axis="columns").sample(10, random_state=10)
 
