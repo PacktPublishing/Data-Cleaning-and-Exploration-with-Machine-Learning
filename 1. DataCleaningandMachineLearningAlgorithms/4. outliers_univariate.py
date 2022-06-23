@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
-from statsmodels.graphics.gofplots import qqline
-import scipy.stats as scistat
 pd.set_option('display.width', 70)
 pd.set_option('display.max_columns', 10)
 pd.set_option('display.max_rows', 20)

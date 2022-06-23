@@ -42,6 +42,12 @@ bintransformer = ewd(bins=10, variables=['total_cases'])
 y_train_bins, y_test_bins = runtransform(bintransformer, y_train, y_test)
 y_train_bins.total_cases.value_counts().sort_index()
 
+pd.options.display.float_format = '{:,.0f}'.format
+y_train_bins = y_train_bins.\
+  rename(columns={'total_cases':'total_cases_group'}).\
+  join(y_train)
+y_train_bins.groupby("total_cases_group")["total_cases"].agg(['min','max'])
+
 # use k means clustering
 kbins = KBinsDiscretizer(n_bins=10, encode='ordinal', strategy='kmeans')
 y_train_bins = \

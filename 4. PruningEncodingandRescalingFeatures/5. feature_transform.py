@@ -10,6 +10,7 @@ pd.set_option('display.max_rows', 200)
 pd.options.display.float_format = '{:,.0f}'.format
 
 covidtotals = pd.read_csv("data/covidtotals.csv")
+
 feature_cols = ['location','population',
     'aged_65_older','diabetes_prevalence','region']
 covidtotals = covidtotals[['total_cases'] + feature_cols].dropna()

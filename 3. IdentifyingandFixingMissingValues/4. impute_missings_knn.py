@@ -17,19 +17,21 @@ nls97['degcol'] = np.where(nls97.hdegnum.between(3,4),1,0)
 nls97['degadv'] = np.where(nls97.hdegnum>4,1,0)
 nls97.parentincome.replace(list(range(-5,0)), np.nan, inplace=True)
 
-wagedatalist = ['wageincome','weeksworked16','parentincome',
-  'degltcol','degcol','degadv']
+wagedatalist = ['wageincome','weeksworked16',
+   'parentincome','degltcol','degcol','degadv']
 wagedata = nls97[wagedatalist]
 
 # initialize a KNN imputation model and fill values
 impKNN = KNNImputer(n_neighbors=47)
 newvalues = impKNN.fit_transform(wagedata)
-wagedatalistimp = ['wageincomeimp','weeksworked16imp','parentincomeimp',
-  'degltcol','degcol','degadv']
-wagedataimp = pd.DataFrame(newvalues, columns=wagedatalistimp, index=wagedata.index)
+wagedatalistimp = ['wageincomeimp','weeksworked16imp',
+  'parentincomeimp','degltcol','degcol','degadv']
+wagedataimp = pd.DataFrame(newvalues,
+  columns=wagedatalistimp, index=wagedata.index)
 
 # view imputed values
-wagedata = wagedata.join(wagedataimp[['wageincomeimp','weeksworked16imp']])
+wagedata = wagedata.\
+  join(wagedataimp[['wageincomeimp','weeksworked16imp']])
 wagedata[['wageincome','weeksworked16','parentincome',
   'degcol','degadv','wageincomeimp']].head(10)
 

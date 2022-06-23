@@ -1,4 +1,4 @@
-# import pandas, numpy, and matplotlib
+# import necessary libraries
 import pandas as pd
 from feature_engine.encoding import OneHotEncoder
 from sklearn.model_selection import train_test_split

@@ -1,0 +1,12 @@
+[workspace]
+restore_data_on_startup = True
+save_data_on_exit = True
+save_history = True
+save_non_project_files = False
+project_type = empty-project-type
+recent_files = ['1. evaluation_measures_classification.py', '3. evaluation_multiclass.py', '4. regression_metrics.py', '7. pipeline_preprocessing.py', 'helperfunctions/preprocfunc.py']
+
+[main]
+version = 0.2.0
+recent_files = []
+

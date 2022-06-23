@@ -13,6 +13,7 @@ democols = ['gender','birthyear','maritalstatus',
  'weeksworked16','wageincome','highestdegree']
 
 nls97demo = nls97[democols]
+nls97demo.index.name
 
 # use slicing to select a few rows
 nls97demo[1000:1004].T
@@ -47,11 +48,15 @@ lowsleep = nls97.loc[nls97.nightlyhrssleep<=lowsleepthreshold]
 lowsleep.shape
 
 # select rows based on multiple conditions
-lowsleep.childathome.describe()
-lowsleep3pluschildren = nls97.loc[(nls97.nightlyhrssleep<4) & (nls97.childathome>3)]
+lowsleep3pluschildren = \
+  nls97.loc[(nls97.nightlyhrssleep<=lowsleepthreshold)
+    & (nls97.childathome>=3)]
 lowsleep3pluschildren.shape
 
 # select rows based on multiple conditions and also select columns
-lowsleep3pluschildren = nls97.loc[(nls97.nightlyhrssleep<=4) & (nls97.childathome>=3), ['nightlyhrssleep','childathome']]
+lowsleep3pluschildren = \
+  nls97.loc[(nls97.nightlyhrssleep<=lowsleepthreshold)
+    & (nls97.childathome>=3),
+    ['nightlyhrssleep','childathome']]
 lowsleep3pluschildren.shape
 

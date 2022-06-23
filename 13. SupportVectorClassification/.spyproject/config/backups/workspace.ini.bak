@@ -1,0 +1,12 @@
+[workspace]
+restore_data_on_startup = True
+save_data_on_exit = True
+save_history = True
+save_non_project_files = False
+project_type = 'empty-project-type'
+recent_files = ['1. decision_tree_classificationkeep.py', '1. knn_classification.py', '2. knn_multiclass.py', '2. nonlinear_svc.py', '3. multinomial_logistic_regressionkeep.py', '3. multiclass_svc.py', '1. linear_svc.py']
+
+[main]
+version = 0.2.0
+recent_files = []
+

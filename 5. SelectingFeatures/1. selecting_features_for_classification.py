@@ -1,14 +1,16 @@
-# import pandas, numpy, and matplotlib
+# import necessary libraries
 import pandas as pd
 from feature_engine.encoding import OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.feature_selection import SelectKBest, chi2, mutual_info_classif
-from feature_engine.discretisation import EqualFrequencyDiscretiser as efd
+from sklearn.feature_selection import SelectKBest,\
+  mutual_info_classif, f_classif
 pd.set_option('display.width', 75)
 pd.set_option('display.max_columns', 20)
 pd.set_option('display.max_rows', 100)
 pd.options.display.float_format = '{:,.3f}'.format
+
+
 nls97compba = pd.read_csv("data/nls97compba.csv")
 
 feature_cols = ['gender','satverbal','satmath','gpascience',
@@ -42,14 +44,9 @@ pd.DataFrame({'score': ksel.scores_,
 X_train_analysis = X_train_enc[selcols]
 X_train_analysis.dtypes
 
-# set up bins based on equal frequency
-bintransformer = efd(q=5, variables=feature_cols[1:])
-bintransformer.fit(X_train_enc)
-X_train_bin = bintransformer.transform(X_train_enc)
-
-# select 5 best features for predicting college completion using chi-square
-ksel = SelectKBest(score_func=chi2, k=5)
-ksel.fit(X_train_bin, y_train)
+# select 5 best features for predicting college completion using ANOVA
+ksel = SelectKBest(score_func=f_classif, k=5)
+ksel.fit(X_train_enc, y_train.values.ravel())
 selcols = X_train_enc.columns[ksel.get_support()]
 selcols
 pd.DataFrame({'score': ksel.scores_,

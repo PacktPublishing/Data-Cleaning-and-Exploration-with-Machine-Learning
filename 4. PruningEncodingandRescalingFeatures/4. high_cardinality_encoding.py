@@ -8,6 +8,9 @@ pd.set_option('display.max_columns', 8)
 pd.set_option('display.max_rows', 200)
 pd.options.display.float_format = '{:,.0f}'.format
 
+import feature_engine
+feature_engine.__version__
+
 covidtotals = pd.read_csv("data/covidtotals.csv")
 feature_cols = ['location','population',
     'aged_65_older','diabetes_prevalence','region']
@@ -29,6 +32,8 @@ covidtotals_ohe.filter(regex='location|region',
 X_train['region2'] = X_train.region
 he = HashingEncoder(cols=['region'], n_components=6)
 X_train_enc = he.fit_transform(X_train)
-X_train_enc.filter(regex='col|region',
-  axis="columns").sample(10, random_state=10)
+X_train_enc.\
+ groupby(['col_0','col_1','col_2','col_3','col_4',
+   'col_5','region2']).\
+ size().reset_index().rename(columns={0:'count'})
 

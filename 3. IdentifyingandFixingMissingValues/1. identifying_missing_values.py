@@ -11,7 +11,6 @@ covidtotals = pd.read_csv("data/covidtotals.csv")
 covidtotals.set_index("iso_code", inplace=True)
 
 # check the demographic columns for missing
-
 covidtotals.shape
 demovars = ['population_density','aged_65_older',
    'gdp_per_capita','life_expectancy','diabetes_prevalence']
@@ -29,6 +28,7 @@ totvarsmisscnt.value_counts().sort_index()
 
 # set logical missings to actual missings
 nlsparents = nls97.iloc[:,-4:]
+nlsparents.shape
 nlsparents.loc[nlsparents.motherhighgrade.between(-5,-1), 'motherhighgrade'].value_counts()
 nlsparents.loc[nlsparents.apply(lambda x: x.between(-5,-1)).\
   any(axis=1)]

@@ -2,7 +2,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import statsmodels.api as sm
 import seaborn as sns
 pd.set_option('display.width', 53)
 pd.set_option('display.max_columns', 6)
@@ -14,8 +13,10 @@ covidtotals.set_index("iso_code", inplace=True)
 
 # show histogram of cases per million
 plt.hist(covidtotals['total_cases_mill'], bins=7)
-plt.axvline(covidtotals.total_cases_mill.mean(), color='red', linestyle='dashed', linewidth=1, label='mean')
-plt.axvline(covidtotals.total_cases_mill.median(), color='black', linestyle='dashed', linewidth=1, label='median')
+plt.axvline(covidtotals.total_cases_mill.mean(), color='red',
+   linestyle='dashed', linewidth=1, label='mean')
+plt.axvline(covidtotals.total_cases_mill.median(), color='black',
+   linestyle='dashed', linewidth=1, label='median')
 plt.title("Total Covid Cases")
 plt.xlabel('Cases per Million')
 plt.ylabel("Number of Countries")
