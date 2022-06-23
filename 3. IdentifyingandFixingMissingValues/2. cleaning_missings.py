@@ -27,27 +27,28 @@ schoolrecord.shape
 schoolrecord.isnull().sum(axis=1).value_counts().sort_index()
 
 # assign mean values to missings
-schoolrecord.gpaoverall.mean()
-schoolrecord.gpaoverall.std()
+schoolrecord.gpaoverall.agg(['mean','std','count'])
 schoolrecord.gpaoverall.\
   fillna(schoolrecord.gpaoverall.\
   mean(), inplace=True)
 schoolrecord.gpaoverall.isnull().sum()
-schoolrecord.gpaoverall.std()
+schoolrecord.gpaoverall.agg(['mean','std','count'])
 
 # use forward fill
 wageincome = nls97.wageincome.copy(deep=True)
-wageincome.std()
 wageincome.isnull().sum()
+wageincome.agg(['mean','std','count'])
 wageincome.head().T
+
 wageincome.fillna(method='ffill', inplace=True)
 wageincome.head().T
 wageincome.isnull().sum()
-wageincome.std()
+wageincome.agg(['mean','std','count'])
 
 wageincome = nls97.wageincome.copy(deep=True)
 wageincome.fillna(method='bfill', inplace=True)
 wageincome.head().T
+wageincome.agg(['mean','std','count'])
 
 
 # fill missings with the average by group
@@ -58,4 +59,7 @@ nls97.loc[~nls97.highestdegree.isnull(), 'weeksworked17imp'] = \
   groupby(['highestdegree'])['weeksworked17'].\
   apply(lambda group: group.fillna(np.mean(group)))
 
-nls97[['weeksworked17imp','weeksworked17','highestdegree']].head(10)
+nls97[['weeksworked17imp','weeksworked17','highestdegree']].\
+  head(10)
+nls97[['weeksworked17imp','weeksworked17']].\
+  agg(['mean','count'])

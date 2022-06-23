@@ -51,18 +51,20 @@ coefficients
 pred = lm.predict(sm.add_constant(nls97[xvars])).\
   to_frame().rename(columns= {0: 'pred'})
 nls97 = nls97.join(pred)
-nls97[['pred','pred'] + xvars].head(10)
-nls97[['pred','wageincome']].agg(['count','mean','std'])
+nls97['wageincomeimp'] = np.where(nls97.wageincome.isnull(),\
+  nls97.pred, nls97.wageincome)
+pd.options.display.float_format = '{:,.0f}'.format
+nls97[['wageincomeimp','wageincome'] + xvars].head(10)
+nls97[['wageincomeimp','wageincome']].\
+  agg(['count','mean','std'])
 
 # add an error term
 randomadd = np.random.normal(0, lm.resid.std(), nls97.shape[0])
 randomadddf = pd.DataFrame(randomadd, columns=['randomadd'], index=nls97.index)
 nls97 = nls97.join(randomadddf)
 nls97['stochasticpred'] = nls97.pred + nls97.randomadd
-#nls97.drop(['randomadd'], axis=1, inplace=True)
-
-nls97[['pred','stochasticpred','wageincome']].agg(['count','mean','std'])
-
-nls97['wageincomeimp'] = np.where(nls97.wageincome.isnull(),\
+nls97['wageincomeimpstoc'] = np.where(nls97.wageincome.isnull(),\
   nls97.stochasticpred, nls97.wageincome)
+
+
 

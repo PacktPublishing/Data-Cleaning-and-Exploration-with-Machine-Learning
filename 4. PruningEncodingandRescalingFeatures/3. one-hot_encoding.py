@@ -9,7 +9,7 @@ pd.set_option('display.max_rows', 100)
 pd.options.display.float_format = '{:,.0f}'.format
 nls97 = pd.read_csv("data/nls97b.csv")
 nls97.set_index("personid", inplace=True)
-coviddaily = pd.read_csv("data/coviddaily.csv", parse_dates=["casedate"])
+
 
 feature_cols = ['gender','maritalstatus','colenroct99']
 nls97demo = nls97[['wageincome'] + feature_cols].dropna()

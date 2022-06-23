@@ -4,7 +4,7 @@ import numpy as np
 pd.set_option('display.width', 53)
 pd.set_option('display.max_columns', 5)
 pd.set_option('display.max_rows', 20)
-pd.options.display.float_format = '{:,.0f}'.format
+pd.options.display.float_format = '{:,.2f}'.format
 nls97 = pd.read_csv("data/nls97.csv")
 nls97.set_index("personid", inplace=True)
 
@@ -22,7 +22,9 @@ marstatcnt.index
 marstatcnt.sort_index()
 
 # show percentages instead of counts
-nls97.maritalstatus.value_counts(normalize=True).sort_index()
+nls97.maritalstatus.\
+  value_counts(normalize=True, dropna=False).\
+     sort_index()
 
 # convert object columns to category
 catcols = nls97abb.select_dtypes(include=["object"]).columns
@@ -47,7 +49,8 @@ nls97abb.loc[nls97abb.maritalstatus=="Married",
   apply(pd.value_counts, normalize=True)
 
 # create a completed 12th grade column
-nls97abb.highestgradecompleted.replace(95, np.nan, inplace=True)
+nls97abb.highestgradecompleted.\
+  replace(95, np.nan, inplace=True)
 nls97abb['highschoolgrad'] = \
   np.where(nls97abb.highestgradecompleted.isnull(),np.nan, \
   np.where(nls97abb.highestgradecompleted<12,0,1))

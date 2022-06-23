@@ -1,0 +1,12 @@
+[workspace]
+restore_data_on_startup = True
+save_data_on_exit = True
+save_history = True
+save_non_project_files = False
+project_type = empty-project-type
+recent_files = ['1. identifying_missing_values.py', '2. cleaning_missings.py', '3. regression_imputation.py', '4. impute_missings_knn.py']
+
+[main]
+version = 0.2.0
+recent_files = []
+

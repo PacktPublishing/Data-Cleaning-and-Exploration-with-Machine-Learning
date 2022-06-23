@@ -1,4 +1,4 @@
-# import pandas, numpy, and matplotlib
+# import necessary libraries
 import pandas as pd
 from feature_engine.encoding import OneHotEncoder
 from sklearn.model_selection import train_test_split
@@ -46,7 +46,10 @@ pd.DataFrame({'score': ksel.scores_,
    sort_values(['score'], ascending=False)
 
 # select the 5 best features using mutual information
-ksel = SelectKBest(score_func=mutual_info_regression, k=5)
+from functools import partial
+ksel = SelectKBest(score_func=\
+  partial(mutual_info_regression, random_state=0),
+  k=5)
 ksel.fit(X_train_enc, y_train.values.ravel())
 selcols = X_train_enc.columns[ksel.get_support()]
 selcols
