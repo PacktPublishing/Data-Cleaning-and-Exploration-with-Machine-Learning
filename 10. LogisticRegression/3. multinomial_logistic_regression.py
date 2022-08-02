@@ -15,7 +15,8 @@ import sklearn.metrics as skmet
 import os
 import sys
 sys.path.append(os.getcwd() + "/helperfunctions")
-from preprocfunc import OutlierTrans
+from preprocfunc import OutlierTrans,\
+  ReplaceVals
 
 pd.set_option('display.width', 78)
 pd.set_option('display.max_columns', 10)
@@ -30,24 +31,6 @@ machinefailuretype.failtype.value_counts(dropna=False).sort_index()
 machinefailuretype.machinetype.\
   value_counts(dropna=False).sort_index()
 
-def setcode(typetext):
-  if (typetext=="No Failure"):
-    typecode = 1
-  elif (typetext=="Heat Dissipation Failure"):
-    typecode = 2
-  elif (typetext=="Power Failure"):
-    typecode = 3
-  elif (typetext=="Overstrain Failure"):
-    typecode = 4
-  else:
-    typecode = 5
-  return typecode
-
-machinefailuretype["failtypecode"] = \
-  machinefailuretype.apply(lambda x: setcode(x.failtype), axis=1)
-
-machinefailuretype.groupby(['failtypecode','failtype']).size().\
-  reset_index()
   
 # take a look at some of the data
 
@@ -57,6 +40,16 @@ num_cols = ['airtemp','processtemperature','rotationalspeed',
 cat_cols = ['machinetype']
 
 machinefailuretype[num_cols].agg(['min','median','max']).T
+
+rep_dict = {
+  'failtype': {'No Failure"':1,
+    'Heat Dissipation Failure':2,
+    'Power Failure':3,
+    'Overstrain Failure':4,
+    'Random Failures':5,
+    'Tool Wear Failure':5}
+}
+
 
 # create training and testing DataFrames
 X_train, X_test, y_train, y_test =  \

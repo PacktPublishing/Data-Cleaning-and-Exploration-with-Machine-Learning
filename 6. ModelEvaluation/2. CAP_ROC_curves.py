@@ -98,7 +98,6 @@ addplot(rfc, X_train_enc, X_test_enc, y_train,
 plt.legend()
 
 
-
 # plot probability distribution
 rfc.fit(X_train_enc, y_train.values.ravel())
 pred = rfc.predict(X_test_enc)
@@ -108,6 +107,8 @@ probdf = pd.DataFrame(zip(pred_probs, pred, y_test.values.ravel()),
   columns=(['prob','pred','actual']))
 
 probdf.groupby(['pred'])['prob'].agg(['min','max'])
+
+
 
 
 sb.kdeplot(probdf.loc[probdf.actual==1].prob, shade=True, color='red',

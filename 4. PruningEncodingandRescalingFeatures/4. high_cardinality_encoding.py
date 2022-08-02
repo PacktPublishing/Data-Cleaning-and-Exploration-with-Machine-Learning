@@ -8,9 +8,6 @@ pd.set_option('display.max_columns', 8)
 pd.set_option('display.max_rows', 200)
 pd.options.display.float_format = '{:,.0f}'.format
 
-import feature_engine
-feature_engine.__version__
-
 covidtotals = pd.read_csv("data/covidtotals.csv")
 feature_cols = ['location','population',
     'aged_65_older','diabetes_prevalence','region']
