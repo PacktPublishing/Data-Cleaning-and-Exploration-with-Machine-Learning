@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['1. knn_classification.py', '2. knn_multiclass.py']
+recent_files = ['1. knn_classification.py', '3. knn_nulticlass_letters.py']
 
 [main]
 version = 0.2.0

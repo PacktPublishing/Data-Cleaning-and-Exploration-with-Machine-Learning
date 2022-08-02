@@ -5,11 +5,11 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
-from sklearn.compose import TransformedTargetRegressor
 from sklearn.model_selection import RandomizedSearchCV
-from scipy.stats import uniform
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.feature_selection import SelectKBest,f_regression
+from sklearn.linear_model import LinearRegression
+from sklearn.feature_selection import SelectFromModel
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 import os
@@ -25,56 +25,85 @@ pd.options.display.float_format = '{:,.2f}'.format
 # load the land temperatures data
 un_income_gap = pd.read_csv("data/un_income_gap.csv")
 un_income_gap.set_index('country', inplace=True)
-un_income_gap['incomegap'] = \
-  un_income_gap.maleincomepercapita - un_income_gap.femaleincomepercapita
-un_income_gap['educgap'] = \
-  un_income_gap.maleyearseducation - un_income_gap.femaleyearseducation
-un_income_gap['laborforcepartgap'] = \
-  un_income_gap.malelaborforceparticipation - un_income_gap.femalelaborforceparticipation
-un_income_gap['humandevgap'] = \
-  un_income_gap.malehumandevelopment - un_income_gap.femalehumandevelopment
-un_income_gap.dropna(subset=['incomegap'], inplace=True)
+un_income_gap['incomeratio'] = \
+  un_income_gap.femaleincomepercapita / \
+    un_income_gap.maleincomepercapita
+un_income_gap['educratio'] = \
+  un_income_gap.femaleyearseducation / \
+     un_income_gap.maleyearseducation
+un_income_gap['laborforcepartratio'] = \
+  un_income_gap.femalelaborforceparticipation / \
+     un_income_gap.malelaborforceparticipation
+un_income_gap['humandevratio'] = \
+  un_income_gap.femalehumandevelopment / \
+     un_income_gap.malehumandevelopment
+un_income_gap.dropna(subset=['incomeratio'], inplace=True)
 
 
-num_cols = ['educgap','laborforcepartgap','humandevgap',
-  'genderinequality','maternalmortaility','adolescentbirthrate',
-  'femaleperparliament','incomepercapita']
+num_cols = ['educratio','laborforcepartratio','humandevratio',
+  'genderinequality','maternalmortaility',
+  'adolescentbirthrate', 'femaleperparliament','incomepercapita']
 
-un_income_gap[num_cols].head()
+gap_sub = un_income_gap[['incomeratio'] + num_cols]
 
+gap_sub.head()
 
-un_income_gap[['incomegap'] + num_cols].\
+gap_sub.\
   agg(['count','min','median','max']).T
+  
+# show a heatmap of correlations
+corrmatrix = gap_sub.corr(method="pearson")
+corrmatrix
 
-
+sns.heatmap(corrmatrix, xticklabels=corrmatrix.columns,
+  yticklabels=corrmatrix.columns, cmap="coolwarm")
+plt.title('Heat Map of Correlation Matrix')
+plt.tight_layout()
+plt.show()
+  
 # create training and testing DataFrames
 X_train, X_test, y_train, y_test =  \
-  train_test_split(un_income_gap[num_cols],\
-  un_income_gap[['incomegap']], test_size=0.2, random_state=0)
+  train_test_split(gap_sub[num_cols],\
+  gap_sub[['incomeratio']], test_size=0.2, random_state=0)
 
 
 # construct a pipeline with preprocessing, feature selection, and knn model
 knnreg = KNeighborsRegressor()
 
-pipe1 = make_pipeline(OutlierTrans(3), SimpleImputer(strategy="median"),
-  StandardScaler(), SelectKBest(score_func=f_regression, k=5), knnreg)
+feature_sel = SelectFromModel(LinearRegression(), threshold="0.8*mean")
 
-ttr=TransformedTargetRegressor(regressor=pipe1,
-  transformer=StandardScaler())
+pipe1 = make_pipeline(OutlierTrans(3), \
+  SimpleImputer(strategy="median"), StandardScaler(), \
+  feature_sel, knnreg)
 
 knnreg_params = {
- 'regressor__selectkbest__k': np.arange(1, 8),
- 'regressor__kneighborsregressor__n_neighbors': np.arange(3, 21, 2),
- 'regressor__kneighborsregressor__metric': ['euclidean','manhattan','minkowski']
+ 'kneighborsregressor__n_neighbors': \
+     np.arange(3, 21, 2),
+ 'kneighborsregressor__metric': \
+     ['euclidean','manhattan','minkowski']
 }
 
 # do a randmoized parameter search
-rs = RandomizedSearchCV(ttr, knnreg_params, cv=10, scoring='r2')
+rs = RandomizedSearchCV(pipe1, knnreg_params, cv=4, n_iter=20, \
+  scoring='neg_mean_absolute_error', random_state=1)
 rs.fit(X_train, y_train)
 
 rs.best_params_
 rs.best_score_
 
+selected = rs.best_estimator_['selectfrommodel'].get_support()
+np.array(num_cols)[selected]
+
+rs.best_estimator_['selectfrommodel'].\
+  get_feature_names_out(np.array(num_cols))
+
+results = \
+  pd.DataFrame(rs.cv_results_['mean_test_score'], \
+    columns=['meanscore']).\
+  join(pd.DataFrame(rs.cv_results_['params'])).\
+  sort_values(['meanscore'], ascending=False)
+
+results.head(3).T
 
 # get predictions and residuals
 pred = rs.predict(X_test)
@@ -82,27 +111,25 @@ pred = rs.predict(X_test)
 preddf = pd.DataFrame(pred, columns=['prediction'],
   index=X_test.index).join(X_test).join(y_test)
 
-preddf['resid'] = preddf.incomegap-preddf.prediction
+preddf['resid'] = preddf.incomeratio-preddf.prediction
 
+preddf.resid.agg(['mean','median','skew','kurtosis'])
 
-plt.hist(preddf.resid, color="blue")
+plt.hist(preddf.resid, color="blue", bins=5)
 plt.axvline(preddf.resid.mean(), color='red', linestyle='dashed', linewidth=1)
-plt.title("Histogram of Residuals for Income Gap Model")
+plt.title("Histogram of Residuals for Income Ratio Model")
 plt.xlabel("Residuals")
 plt.ylabel("Frequency")
 plt.xlim()
 plt.show()
 
-
-
-
 plt.scatter(preddf.prediction, preddf.resid, color="blue")
 plt.axhline(0, color='red', linestyle='dashed', linewidth=1)
 plt.title("Scatterplot of Predictions and Residuals")
-plt.xlabel("Predicted Income Gap")
+plt.xlabel("Predicted Income Ratio")
 plt.ylabel("Residuals")
 plt.show()
 
-preddf.head(10)
-
-
+preddf.loc[np.abs(preddf.resid)>=0.1,
+  ['incomeratio','prediction','resid','laborforcepartratio',
+  'humandevratio']].T

@@ -5,15 +5,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from imblearn.pipeline import make_pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import RandomizedSearchCV
 from imblearn.over_sampling import SMOTENC
-from sklearn.tree import DecisionTreeClassifier, plot_tree
-from scipy.stats import randint
-import sklearn.metrics as skmet
 
-import os
-import sys
-sys.path.append(os.getcwd() + "/helperfunctions")
 from preprocfunc import MakeOrdinal,\
   ReplaceVals
 
@@ -112,91 +105,4 @@ SMOTENC(categorical_features=np.arange(0,catcolscnt),
 smotenc = \
   SMOTENC(categorical_features=np.arange(0,catcolscnt),
   random_state=0)
-
-dtc_example = DecisionTreeClassifier(min_samples_leaf=30,
-  max_depth=2)
-
-pipe0 = make_pipeline(coltrans, smotenc, dtc_example)
-
-pipe0.fit(X_train, y_train.values.ravel())
-
-pipe0.named_steps['smotenc']
-
-# get feature importances
-feature_imp = \
-  pipe0.named_steps['decisiontreeclassifier'].\
-  tree_.compute_feature_importances(normalize=False)
-feature_impgt0 = feature_imp>0
-feature_implabs = np.column_stack((feature_imp.\
-  ravel(), new_cols))
-feature_implabs[feature_impgt0]
-
-plot_tree(pipe0.named_steps['decisiontreeclassifier'],
-  feature_names=new_cols, 
-  class_names=['No Disease','Disease'], fontsize=10)
-
-
-pred = pipe0.predict(X_test)
-
-print("accuracy: %.2f, sensitivity: %.2f, specificity: %.2f, precision: %.2f"  %
-  (skmet.accuracy_score(y_test.values.ravel(), pred),
-  skmet.recall_score(y_test.values.ravel(), pred),
-  skmet.recall_score(y_test.values.ravel(), pred,
-    pos_label=0),
-  skmet.precision_score(y_test.values.ravel(), pred)))
-
-# do some hyperparameter tuning
-dtc = DecisionTreeClassifier(random_state=0)
-
-pipe1 = make_pipeline(coltrans, smotenc, dtc)
-
-dtc_params = {
- 'decisiontreeclassifier__min_samples_leaf': randint(100, 1200),
- 'decisiontreeclassifier__max_depth': randint(2, 11)
-}
-
-rs = RandomizedSearchCV(pipe1, dtc_params, cv=5,
-  n_iter=20, scoring="roc_auc")
-rs.fit(X_train, y_train.values.ravel())
-
-rs.best_params_
-rs.best_score_
-
-
-results = \
-  pd.DataFrame(rs.cv_results_['mean_test_score'], \
-    columns=['meanscore']).\
-  join(pd.DataFrame(rs.cv_results_['params'])).\
-  sort_values(['meanscore'], ascending=False).\
-  rename(columns=\
-    {'decisiontreeclassifier__max_depth':'maxdepth',
-     'decisiontreeclassifier__min_samples_leaf':\
-     'samples'})
-
-results
-
-pred2 = rs.predict(X_test)
-
-cm = skmet.confusion_matrix(y_test, pred2)
-cmplot = \
-  skmet.ConfusionMatrixDisplay(confusion_matrix=cm,
-  display_labels=['Negative', 'Positive'])
-cmplot.plot()
-cmplot.ax_.\
-  set(title='Heart Disease Prediction Confusion Matrix', 
-  xlabel='Predicted Value', ylabel='Actual Value')
-
-
-print("accuracy: %.2f, sensitivity: %.2f, specificity: %.2f, precision: %.2f"  %
-  (skmet.accuracy_score(y_test.values.ravel(), pred2),
-  skmet.recall_score(y_test.values.ravel(), pred2),
-  skmet.recall_score(y_test.values.ravel(), pred2,
-    pos_label=0),
-  skmet.precision_score(y_test.values.ravel(), pred2)))
-
-# this can be used to save the transformed data; it is not in the chapter text
-healthinfosample_enc = pd.DataFrame(coltrans.fit_transform(healthinfo[num_cols + 
-  binary_cols + cat_cols + spec_cols1 + spec_cols2]), columns=new_cols, index=healthinfo.index).join(healthinfo[['heartdisease']])
-
-healthinfosample_enc.to_csv('data/healthinfosample_enc.csv', index=False)
 

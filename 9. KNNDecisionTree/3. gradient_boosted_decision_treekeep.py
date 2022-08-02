@@ -2,18 +2,17 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import make_pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.compose import TransformedTargetRegressor
-from sklearn.feature_selection import RFE
-from sklearn.impute import KNNImputer
-
-from sklearn.model_selection import cross_validate, KFold
-import sklearn.metrics as skmet
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.feature_selection import SelectFromModel
 import matplotlib.pyplot as plt
+
+from scipy.stats import randint
+from scipy.stats import uniform
 
 import os
 import sys
@@ -21,10 +20,11 @@ sys.path.append(os.getcwd() + "/helperfunctions")
 from preprocfunc import OutlierTrans
 
 pd.set_option('display.width', 200)
-pd.set_option('display.max_columns', 25)
+pd.set_option('display.max_columns', 50)
 pd.set_option('display.max_rows', 200)
 pd.options.display.float_format = '{:,.2f}'.format
 
+# load the land temperatures data
 fftaxrate14 = pd.read_csv("data/fossilfueltaxrate14.csv")
 fftaxrate14.set_index('countrycode', inplace=True)
 fftaxrate14.info()
@@ -50,10 +50,9 @@ X_train, X_test, y_train, y_test =  \
   target, test_size=0.2, random_state=0)
       
 # setup pipelines for column transformation
-standtrans = make_pipeline(OutlierTrans(2), SimpleImputer(strategy="median"),
-  StandardScaler())
+standtrans = make_pipeline(OutlierTrans(2), SimpleImputer(strategy="median"))
 cattrans = make_pipeline(SimpleImputer(strategy="most_frequent"))
-spectrans = make_pipeline(OutlierTrans(2), StandardScaler())
+spectrans = make_pipeline(OutlierTrans(2))
 coltrans = ColumnTransformer(
   transformers=[
     ("stand", standtrans, num_cols),
@@ -62,70 +61,56 @@ coltrans = ColumnTransformer(
   ]
 )
 
-# add feature selection and a linear model to the pipeline and look at the parameter estimates
-lr = LinearRegression()
+# construct a decision tree model
+gbr = GradientBoostingRegressor(random_state=0)
 
-rfe = RFE(estimator=lr, n_features_to_select=7)
+feature_sel = SelectFromModel(LinearRegression(),
+  threshold="0.8*mean")
 
-pipe1 = make_pipeline(coltrans, KNNImputer(n_neighbors=5), rfe, lr)
+gbr_params = {
+ 'gradientboostingregressor__learning_rate': uniform(loc=0.1, scale=0.5),
+ 'gradientboostingregressor__n_estimators': randint(100, 1000),
+ 'gradientboostingregressor__max_depth': np.arange(2, 20),
+ 'gradientboostingregressor__min_samples_leaf': np.arange(5, 11)
+}
 
-ttr=TransformedTargetRegressor(regressor=pipe1,transformer=StandardScaler())
+pipe1 = make_pipeline(OutlierTrans(3),
+  SimpleImputer(strategy="median"),
+  feature_sel, gbr)
 
-ttr.fit(X_train, y_train)
+rs = RandomizedSearchCV(pipe1, gbr_params, cv=4, n_iter=20,
+  scoring='neg_mean_absolute_error', random_state=1)
+rs.fit(X_train, y_train.values.ravel())
 
-selcols = X_train.columns[ttr.regressor_.named_steps['rfe'].support_]
-coefs = ttr.regressor_.named_steps['linearregression'].coef_
-np.column_stack((coefs.ravel(),selcols))
+rs.best_params_
+rs.best_score_
 
 # get predictions and residuals
-pred = ttr.predict(X_test)
+pred = rs.predict(X_test)
+
 
 preddf = pd.DataFrame(pred, columns=['prediction'],
   index=X_test.index).join(X_test).join(y_test)
 
-preddf['resid'] = preddf.gas_tax_imp-preddf.prediction
-
-preddf.resid.agg(['mean','median','skew','kurtosis'])
-
-# generate summary model evaluation statistics
-print("Mean Absolute Error: %.2f, R-squared: %.2f" % 
-  (skmet.mean_absolute_error(y_test, pred),
-  skmet.r2_score(y_test, pred)))
+preddf['resid'] = preddf.incomeratio-preddf.prediction
 
 
-# plot the residuals
-plt.hist(preddf.resid, color="blue", bins=np.arange(-0.5,1.0,0.25))
+plt.hist(preddf.resid, color="blue", bins=5)
 plt.axvline(preddf.resid.mean(), color='red', linestyle='dashed', linewidth=1)
-plt.title("Histogram of Residuals for Gax Tax Model")
+plt.title("Histogram of Residuals for Income Ratio")
 plt.xlabel("Residuals")
 plt.ylabel("Frequency")
 plt.xlim()
 plt.show()
 
-# plot predictions against the residuals
+
 plt.scatter(preddf.prediction, preddf.resid, color="blue")
 plt.axhline(0, color='red', linestyle='dashed', linewidth=1)
 plt.title("Scatterplot of Predictions and Residuals")
-plt.xlabel("Predicted Gax Tax")
+plt.xlabel("Predicted Income Ratio")
 plt.ylabel("Residuals")
 plt.show()
 
-
-# do kfold cross validation
-X_train, X_test, y_train, y_test =  \
-  train_test_split(features,\
-  target, test_size=0.1, random_state=22)
-
-kf = KFold(n_splits=3, shuffle=True, random_state=0)
-
-ttr.fit(X_train, y_train)
-
-scores = cross_validate(ttr, X=X_train, y=y_train,
-  cv=kf, scoring=('r2', 'neg_mean_absolute_error'), n_jobs=1)
-
-scores
-
-print("Mean Absolute Error: %.2f, R-squared: %.2f" % 
-  (scores['test_neg_mean_absolute_error'].mean(),
-  scores['test_r2'].mean()))
-
+preddf.loc[np.abs(preddf.resid)>=0.12,
+  ['incomeratio','prediction','resid',
+  'laborforcepartratio', 'humandevratio']].T

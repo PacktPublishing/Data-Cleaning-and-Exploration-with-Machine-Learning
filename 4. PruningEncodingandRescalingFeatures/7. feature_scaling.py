@@ -27,7 +27,8 @@ X_train_mms.describe()
 
 # do standard scaling
 scaler = StandardScaler()
-X_train_ss = pd.DataFrame(scaler.fit_transform(X_train),
+X_train_ss = \
+  pd.DataFrame(scaler.fit_transform(X_train),
   columns=X_train.columns, index=X_train.index)
 X_train_ss.describe()
 

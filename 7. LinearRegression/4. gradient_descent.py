@@ -4,12 +4,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import SGDRegressor
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import make_pipeline
-from sklearn.compose import ColumnTransformer
 from sklearn.compose import TransformedTargetRegressor
+from sklearn.pipeline import make_pipeline
 from sklearn.impute import KNNImputer
-
 from sklearn.model_selection import GridSearchCV
 
 import os
@@ -22,58 +19,32 @@ pd.set_option('display.max_columns', 25)
 pd.set_option('display.max_rows', 200)
 pd.options.display.float_format = '{:,.2f}'.format
 
-fftaxrate14 = pd.read_csv("data/fossilfueltaxrate14.csv")
-fftaxrate14.set_index('countrycode', inplace=True)
-fftaxrate14.info()
+landtemps = pd.read_csv("data/landtempsb2019avgs.csv")
+landtemps.set_index('locationid', inplace=True)
 
-# setup the features and target
-num_cols = ['fuel_income_dependence','national_income_per_cap',
-  'VAT_Rate',  'gov_debt_per_gdp','polity','goveffect',
-  'democracy_index']
-dummy_cols = ['democracy_polity','autocracy_polity','democracy',
-  'nat_oil_comp','nat_oil_comp_state']
-spec_cols = ['motorization_rate']
+feature_cols = ['latabs','elevation']
 
-# generate some summary statistics
-fftaxrate14[['gas_tax_imp'] + num_cols + spec_cols].\
-  agg(['count','min','median','max']).T
-fftaxrate14[dummy_cols].apply(pd.value_counts, normalize=True).T
-
-target = fftaxrate14[['gas_tax_imp']]
-features = fftaxrate14[num_cols + dummy_cols + spec_cols]
-
+# create training and testing DataFrames
 X_train, X_test, y_train, y_test =  \
-  train_test_split(features,\
-  target, test_size=0.2, random_state=0)
-      
-# setup pipelines for column transformation
-standtrans = make_pipeline(OutlierTrans(2), SimpleImputer(strategy="median"),
-  StandardScaler())
-cattrans = make_pipeline(SimpleImputer(strategy="most_frequent"))
-spectrans = make_pipeline(OutlierTrans(2), StandardScaler())
-coltrans = ColumnTransformer(
-  transformers=[
-    ("stand", standtrans, num_cols),
-    ("cat", cattrans, dummy_cols),
-    ("spec", spectrans, spec_cols)
-  ]
-)
+  train_test_split(landtemps[feature_cols],\
+  landtemps[['avgtemp']], test_size=0.1, random_state=0)
 
-# add feature selection and a linear model to the pipeline and look at the parameter estimates
-
-sgdr_params = {
- 'regressor__sgdregressor__alpha': 10.0 ** -np.arange(1, 7),
- 'regressor__sgdregressor__loss': ['squared_loss', 'huber', 'epsilon_insensitive'],
- 'regressor__sgdregressor__penalty': ['l2', 'l1', 'elasticnet'],
- 'regressor__sgdregressor__learning_rate': ['constant', 'optimal', 'invscaling']
-}
-
+    
+knnimp = KNNImputer(n_neighbors=45)
 
 sgdr = SGDRegressor()
 
-pipe1 = make_pipeline(coltrans, KNNImputer(n_neighbors=5), sgdr)
+pipe1 = make_pipeline(OutlierTrans(3),knnimp,StandardScaler(), sgdr)
 
 ttr=TransformedTargetRegressor(regressor=pipe1,transformer=StandardScaler())
+
+sgdr_params = {
+ 'regressor__sgdregressor__alpha': 10.0 ** -np.arange(1, 7),
+ 'regressor__sgdregressor__loss': ['huber','epsilon_insensitive'],
+ 'regressor__sgdregressor__penalty': ['l2', 'l1', 'elasticnet'],
+ 'regressor__sgdregressor__epsilon': np.arange(0.1, 1.6, 0.1)
+}
+
 
 gs = GridSearchCV(ttr,param_grid=sgdr_params, cv=5, scoring="r2")
 gs.fit(X_train, y_train)
@@ -81,4 +52,11 @@ gs.fit(X_train, y_train)
 gs.best_params_
 gs.best_score_
 
+results = \
+  pd.DataFrame(gs.cv_results_['mean_test_score'], \
+    columns=['meanscore']).\
+  join(pd.DataFrame(gs.cv_results_['params'])).\
+  sort_values(['meanscore'], ascending=False)
+
+results.head(3).T
 
